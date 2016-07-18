@@ -54,17 +54,6 @@ def extractArchiveFile(zipfilename, extractpath):
     except KeyError:
         print "Error in extracting the Archive file"
 
-def AppendFilesToArchive():
-    """ This function appends the files to the archive """
-    zf = zipfile.ZipFile('file.zip', 'a')
-    try:
-        zf.write('file1.txt')
-        zf.write('file2.txt')
-    except KeyError:
-        print "Error in appending the file to the Archive"
-    finally:
-        zf.close()
-
 def listFilesFromArchive(zipfilename):
     """ This function list out the contents of the archive """
     zf = zipfile.ZipFile(zipfilename, 'r')
@@ -75,6 +64,20 @@ def listFilesFromArchive(zipfilename):
         print "Error in listing the file info"
     finally:
         zf.close()
+
+def deleteFilesFromArchive(zipfilename, filetodelete):
+    tmpzip = 'archve_new.zip'
+    zin = zipfile.ZipFile (zipfilename, 'r')
+    zout = zipfile.ZipFile (tmpzip, 'w')
+    for item in zin.infolist():
+        buffer = zin.read(item.filename)
+        if (item.filename <> filetodelete):
+            zout.writestr(item, buffer)
+    zout.close()
+    zin.close()
+
+    os.unlink(zipfilename)
+    os.rename(tmpzip, zipfilename)
 
 def exitApp():
     """ Gets exit from the program """
@@ -87,7 +90,8 @@ options = {
             1 : toArchive,
             2 : extractArchiveFile,
             3 : listFilesFromArchive,
-            4 : exitApp,
+            4 : deleteFilesFromArchive,
+            5 : exitApp,
         }
 
 def PrintOptions():
@@ -96,7 +100,8 @@ def PrintOptions():
             1. Add to archive file
             2. Extract a Archive file
             3. List files from Archive
-            4. Exit  """)
+            4. Remove files from Archive
+            5. Exit  """)
 
 
 def main():
@@ -124,7 +129,12 @@ def main():
             elif option == 3:
                 options[option](filename)
 
-            elif option == 4 :
+            elif option == 4:
+                filename = raw_input("Enter the zip file name, example test.zip: ")
+                filetodelete = raw_input("Enter the file name to delete, example file.txt: ")
+                options[option](filename, filetodelete)
+
+            elif option == 5 :
                 options[option]()
                 break
 
