@@ -25,31 +25,31 @@ def toArchive(file, zipfilename):
         if os.path.isfile(file):
             zf.write(file)
         else:
-            addFolderToZip(zipfilename, file)
+            addFolderToZip(zipfilename, file, zf)
     except KeyError:
         print "Error in creating the Archive file"
     finally:
         print "Closing"
         zf.close()
 
-def addFolderToZip(zip_file, folder):
-    zip_file = zipfile.ZipFile(zip_file, 'a')
+def addFolderToZip(zip_file, folder, zip_file1):
     for file in os.listdir(folder):
         full_path = os.path.join(folder, file)
         if os.path.isfile(full_path):
             print 'File added: ' + str(full_path)
-            zip_file.write(full_path)
+            zip_file1.write(full_path)
         elif os.path.isdir(full_path):
             print 'Entering folder: ' + str(full_path)
-            addFolderToZip(zip_file, full_path)
+            addFolderToZip(zip_file, full_path, zip_file1)
 
-    zip_file.close()
+    zip_file1.close()
 
-def extractArchiveFile(zipfilename):
+def extractArchiveFile(zipfilename, extractpath):
     """ This function extract the archive """
     zip_file = zipfile.ZipFile(zipfilename, 'r')
     try:
-        zip_file.extractall()
+
+        zip_file.extractall(extractpath)
         print "Archive file is successfully extracted"
     except KeyError:
         print "Error in extracting the Archive file"
@@ -95,12 +95,12 @@ def PrintOptions():
     print("""
             1. Add to archive file
             2. Extract a Archive file
-            3. List files from the Archive
+            3. List files from Archive
             4. Exit  """)
 
 
 def main():
-    filename = 'file.zip'
+    filename = ""
     directory = 'calculator'
 
     while True:
@@ -109,12 +109,21 @@ def main():
 
         if options.has_key(option):
             if option == 1:
+                if os.path.isfile(filename):
+                    pass
+                else:
+                    filename = raw_input("Enter the zip file name, example test.zip: ")
+                    if not filename: filename = 'download.zip'
                 options[option](directory, filename)
+
             elif option == 2:
-                options[option](filename)
-                pass
+                filename = raw_input("Enter the zip file name, example test.zip: ")
+                extractpath = raw_input("Enter the full path to extract: ")
+                options[option](filename, extractpath)
+
             elif option == 3:
                 options[option](filename)
+
             elif option == 4 :
                 options[option]()
                 break
