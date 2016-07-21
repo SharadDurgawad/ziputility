@@ -10,42 +10,22 @@
 # Licence:     <your licence>
 #-------------------------------------------------------------------------------
 
+from os.path import basename
 import zipfile, os, sys
 
+def zipfolder(foldername, target_dir):
+    zipobj = zipfile.ZipFile(foldername + '.zip', 'w', zipfile.ZIP_DEFLATED)
+    rootlen = len(target_dir) + 1
+    for base, dirs, files in os.walk(target_dir):
+        for file in files:
+            fn = os.path.join(base, file)
+            zipobj.write(fn, fn[rootlen:])
+    zipobj.close()
 
-def toArchive(file, zipfilename):
-    """ This function creates the archive """
-
-    if os.path.isfile(zipfilename):
-        zf = zipfile.ZipFile(zipfilename, 'a')
-    else:
-        zf = zipfile.ZipFile(zipfilename, 'w')
-
-    try:
-        if os.path.isfile(file):
-            zf.write(file)
-        else:
-            addFolderToZip(zipfilename, file, zf)
-    except KeyError:
-        print "Error in creating the Archive file"
-    finally:
-        print "Closing"
-        zf.close()
-
-def addFolderToZip(zip_file, folder, zip_file1):
-    for file in os.listdir(folder):
-        full_path = os.path.join(folder, file)
-        if os.path.isfile(full_path):
-            print 'File added: ' + str(full_path)
-            zip_file1.write(full_path)
-        elif os.path.isdir(full_path):
-            print 'Entering folder: ' + str(full_path)
-            addFolderToZip(zip_file, full_path, zip_file1)
-
-    zip_file1.close()
 
 def extractArchiveFile(zipfilename, extractpath):
     """ This function extract the archive """
+    extractpath = os.path.join(extractpath, zipfilename[:-4])
     zip_file = zipfile.ZipFile(zipfilename, 'r')
     try:
 
@@ -56,7 +36,8 @@ def extractArchiveFile(zipfilename, extractpath):
 
 def listFilesFromArchive(zipfilename):
     """ This function list out the contents of the archive """
-    zf = zipfile.ZipFile(zipfilename, 'r')
+    base_file = os.path.basename(zipfilename)
+    zf = zipfile.ZipFile(base_file, 'r')
     try:
         print "file.zip contains below list:"
         zf.printdir()
@@ -87,7 +68,7 @@ def exitApp():
 
 
 options = {
-            1 : toArchive,
+            1 : zipfolder,
             2 : extractArchiveFile,
             3 : listFilesFromArchive,
             4 : deleteFilesFromArchive,
@@ -106,7 +87,7 @@ def PrintOptions():
 
 def main():
     filename = ""
-    directory = 'calculator'
+    directory = ""
 
     while True:
         PrintOptions()
@@ -117,9 +98,10 @@ def main():
                 if os.path.isfile(filename):
                     pass
                 else:
-                    filename = raw_input("Enter the zip file name, example test.zip: ")
+                    directory = raw_input("Enter the full directory path to zip: ")
+                    filename = os.path.basename(directory)
                     if not filename: filename = 'download.zip'
-                options[option](directory, filename)
+                options[option](filename, directory)
 
             elif option == 2:
                 filename = raw_input("Enter the zip file name, example test.zip: ")
@@ -127,6 +109,7 @@ def main():
                 options[option](filename, extractpath)
 
             elif option == 3:
+                filename = raw_input("Enter the zip file name with complete path: ")
                 options[option](filename)
 
             elif option == 4:
@@ -139,5 +122,6 @@ def main():
                 break
 
         continue
+    sys.exit()
 
 main()
