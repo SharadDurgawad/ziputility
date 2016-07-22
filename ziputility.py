@@ -11,7 +11,7 @@
 #-------------------------------------------------------------------------------
 
 from os.path import basename
-import zipfile, os, sys
+import zipfile, os, sys, shutil
 
 def zipfolder(foldername, target_dir):
     zipobj = zipfile.ZipFile(foldername + '.zip', 'w', zipfile.ZIP_DEFLATED)
@@ -25,21 +25,26 @@ def zipfolder(foldername, target_dir):
 
 def extractArchiveFile(zipfilename, extractpath):
     """ This function extract the archive """
-    extractpath = os.path.join(extractpath, zipfilename[:-4])
-    zip_file = zipfile.ZipFile(zipfilename, 'r')
+    dir1, zipname = os.path.split(zipfilename)
+    extractpath = os.path.join(extractpath, os.path.splitext(zipname)[0])
+    os.chdir(dir1)
+    zip_file = zipfile.ZipFile(zipname, 'r')
     try:
 
         zip_file.extractall(extractpath)
-        print "Archive file is successfully extracted"
+        print "\n Archive file is successfully extracted"
     except KeyError:
         print "Error in extracting the Archive file"
 
 def listFilesFromArchive(zipfilename):
     """ This function list out the contents of the archive """
-    base_file = os.path.basename(zipfilename)
-    zf = zipfile.ZipFile(base_file, 'r')
+    dir1, zipname = os.path.split(zipfilename)
+    os.chdir(dir1)
+    zf = zipfile.ZipFile(zipname, 'r')
     try:
-        print "file.zip contains below list:"
+        print '\n'
+        print '********** ' + zipname + ' contains below list:' + ' **********'
+        print '\n'
         zf.printdir()
     except IOError:
         print "Error in listing the file info"
@@ -48,7 +53,9 @@ def listFilesFromArchive(zipfilename):
 
 def deleteFilesFromArchive(zipfilename, filetodelete):
     tmpzip = 'archve_new.zip'
-    zin = zipfile.ZipFile (zipfilename, 'r')
+    dir1, zipname = os.path.split(zipfilename)
+    os.chdir(dir1)
+    zin = zipfile.ZipFile (zipname, 'r')
     zout = zipfile.ZipFile (tmpzip, 'w')
     for item in zin.infolist():
         buffer = zin.read(item.filename)
@@ -57,12 +64,11 @@ def deleteFilesFromArchive(zipfilename, filetodelete):
     zout.close()
     zin.close()
 
-    os.unlink(zipfilename)
-    os.rename(tmpzip, zipfilename)
+    shutil.move(tmpzip, zipname)
 
 def exitApp():
     """ Gets exit from the program """
-    print "Successfully exited the program"
+    print "\n Successfully exited the program"
     exit
 
 
@@ -94,29 +100,37 @@ def main():
         option = input("Enter the option from the list: ")
 
         if options.has_key(option):
+            # Call zipfolder function
             if option == 1:
                 if os.path.isfile(filename):
                     pass
                 else:
                     directory = raw_input("Enter the full directory path to zip: ")
-                    filename = os.path.basename(directory)
+                    dir1, filename = os.path.split(directory)
                     if not filename: filename = 'download.zip'
                 options[option](filename, directory)
 
+                filename += '.zip'
+                shutil.move(filename, dir1)
+
+            # Call extractArchiveFile function
             elif option == 2:
-                filename = raw_input("Enter the zip file name, example test.zip: ")
+                filename = raw_input("Enter the zip file name with complete path: ")
                 extractpath = raw_input("Enter the full path to extract: ")
                 options[option](filename, extractpath)
 
+            # Call listFilesFromArchive function
             elif option == 3:
                 filename = raw_input("Enter the zip file name with complete path: ")
                 options[option](filename)
 
+            # Call deleteFilesFromArchive function
             elif option == 4:
-                filename = raw_input("Enter the zip file name, example test.zip: ")
+                filename = raw_input("Enter the zip file name with complete path: ")
                 filetodelete = raw_input("Enter the file name to delete, example file.txt: ")
                 options[option](filename, filetodelete)
 
+            # Call exitApp function
             elif option == 5 :
                 options[option]()
                 break
